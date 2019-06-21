@@ -6,7 +6,12 @@ Useful for when an organization wants to make actions public, but impose a custo
 
 Note that this forwarder does not accept native ETH as a fee.
 
-## Customization
+## 🚨 Not yet audited, use at your own risk
+
+The `Tollgate` contract has not yet been professionally audited. It is simple, but use with this
+asterisk in mind.
+
+## Functionality
 
 ### Initialization
 
@@ -25,3 +30,10 @@ Note that `feeAmount` can be set to 0 to dynamically remove or impose a toll wit
 ### `feeDestination`
 
 Adjustable via `changeFeeDestination()`, which is protected by `CHANGE_DESTINATION_ROLE`.
+
+## Development
+
+For now, requires locally linked versions of:
+
+- `@aragon/os`, from [branch](https://github.com/aragon/aragonOS/pull/536)
+- `@aragon/test-helpers`, from [branch](https://github.com/aragon/aragon-apps/pull/891)
