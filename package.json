@@ -45,6 +45,7 @@
   },
   "dependencies": {
     "@aragon/apps-voting": "^2.1.0",
+    "@aragon/apps-token-manager": "^2.1.0",
     "@aragon/os": "aragon/aragonOS#e45412fbf5f7be257e9b9e3ab215ce8dfa6c9664"
   }
 }
