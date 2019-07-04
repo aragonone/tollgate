@@ -25,7 +25,9 @@
   ],
   "author": "Aragon Association <contact@aragon.org>",
   "contributors": [
-    "Brett Sun <brett@aragon.one>"
+    "Brett Sun <brett@aragon.one>",
+    "Facu Spagnuolo <facu@aragon.one>",
+    "Luke Dunkan <luke@aragon.one>"
   ],
   "repository": "https://github.com/aragon/aragonOS",
   "license": "GPL-3.0-or-later",
@@ -43,6 +45,6 @@
   },
   "dependencies": {
     "@aragon/apps-voting": "^2.1.0",
-    "@aragon/os": "4.2.1"
+    "@aragon/os": "aragon/aragonOS#e45412fbf5f7be257e9b9e3ab215ce8dfa6c9664"
   }
 }
