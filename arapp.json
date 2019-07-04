@@ -1,0 +1,25 @@
+{
+  "environments": {
+    "default": {
+      "appName": "tollgate.aragonpm.eth",
+      "network": "rpc"
+    },
+    "rinkeby": {
+      "appName": "tollgate.aragonpm.eth",
+      "network": "rinkeby"
+    }
+  },
+  "roles": [
+    {
+      "name": "Change fees destination address",
+      "id": "CHANGE_DESTINATION_ROLE",
+      "params": ["New address", "Current address"]
+    },
+    {
+      "name": "Change fee amount",
+      "id": "CHANGE_AMOUNT_ROLE",
+      "params": ["New amount", "Current amount"]
+    }
+  ],
+  "path": "contracts/Tollgate.sol"
+}
