@@ -13,14 +13,18 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     bytes32 public constant CHANGE_AMOUNT_ROLE = keccak256("CHANGE_AMOUNT_ROLE");
     bytes32 public constant CHANGE_DESTINATION_ROLE = keccak256("CHANGE_DESTINATION_ROLE");
 
+    string private constant ERROR_CAN_NOT_FORWARD = "TOLLGATE_CAN_NOT_FORWARD";
+    string private constant ERROR_INVALID_FEE_TOKEN = "TOLLGATE_INVALID_FEE_TOKEN";
+    string private constant ERROR_INVALID_FEE_AMOUNT = "TOLLGATE_INVALID_FEE_AMOUNT";
+    string private constant ERROR_INVALID_FEE_DESTINATION = "TOLLGATE_INVALID_FEE_DESTINATION";
     string private constant ERROR_FEE_TRANSFER_REVERTED = "TOLLGATE_FEE_TRANSFER_REVERTED";
 
     ERC20 public feeToken;
     uint256 public feeAmount;
     address public feeDestination;
 
-    event ChangeFeeAmount(uint256 amount);
-    event ChangeFeeDestination(address indexed destination);
+    event ChangeFeeAmount(uint256 previousAmount, uint256 newAmount);
+    event ChangeFeeDestination(address indexed previousDestination, address indexed newDestination);
 
     /**
     * @notice Initialize Tollgate with fee of `@tokenAmount(_feeToken, _feeAmount)`
@@ -30,6 +34,10 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     */
     function initialize(ERC20 _feeToken, uint256 _feeAmount, address _feeDestination) external onlyInit {
         initialized();
+
+        require(_feeDestination != address(0), ERROR_INVALID_FEE_DESTINATION);
+        require(address(_feeToken) != address(0), ERROR_INVALID_FEE_TOKEN);
+
         feeToken = _feeToken;
         feeAmount = _feeAmount;
         feeDestination = _feeDestination;
@@ -40,8 +48,9 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     * @param _feeAmount Fee amount
     */
     function changeFeeAmount(uint256 _feeAmount) external authP(CHANGE_AMOUNT_ROLE, arr(_feeAmount, feeAmount)) {
+        require(_feeAmount != feeAmount, ERROR_INVALID_FEE_AMOUNT);
+        emit ChangeFeeAmount(feeAmount, _feeAmount);
         feeAmount = _feeAmount;
-        emit ChangeFeeAmount(_feeAmount);
     }
 
     /**
@@ -49,8 +58,9 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     * @param _feeDestination Destination for collected fees
     */
     function changeFeeDestination(address _feeDestination) external authP(CHANGE_DESTINATION_ROLE, arr(_feeDestination, feeDestination)) {
+        require(_feeDestination != feeDestination && _feeDestination != address(0), ERROR_INVALID_FEE_DESTINATION);
+        emit ChangeFeeDestination(feeDestination, _feeDestination);
         feeDestination = _feeDestination;
-        emit ChangeFeeDestination(_feeDestination);
     }
 
     // Forwarding fns
@@ -80,6 +90,8 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     * @param _evmScript Script being executed
     */
     function forward(bytes _evmScript) public {
+        require(canForward(msg.sender, _evmScript), ERROR_CAN_NOT_FORWARD);
+
         // Don't do an unnecessary transfer if there's no fee right now
         if (feeAmount > 0) {
             require(feeToken.safeTransferFrom(msg.sender, feeDestination, feeAmount), ERROR_FEE_TRANSFER_REVERTED);
@@ -94,9 +106,9 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     /**
     * @notice Tells whether the _sender can forward actions or not
     * @dev IForwarder interface conformance. It assumes the sender can always forward actions through the Tollgate app.
-    * @return Always true
+    * @return Always true unless app it's not initialized
     */
     function canForward(address, bytes) public view returns (bool) {
-        return true;
+        return hasInitialized();
     }
 }
