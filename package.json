@@ -4,7 +4,6 @@
   "description": "Aragon forwarder for protecting actions with fees",
   "scripts": {
     "compile": "truffle compile",
-    "build": "cd app && npm run build",
     "apm:publish:major": "aragon apm publish major --files public/",
     "apm:publish:minor": "aragon apm publish minor --files public/",
     "apm:publish:patch": "aragon apm publish patch --files public/",
@@ -12,7 +11,6 @@
     "test": "TRUFFLE_TEST=true npm run ganache-cli:test",
     "test:gas": "GAS_REPORTER=true npm test",
     "coverage": "SOLIDITY_COVERAGE=true npm run ganache-cli:test",
-    "truffle:dev": "truffle dev",
     "ganache-cli:test": "./node_modules/@aragon/test-helpers/ganache-cli.sh",
     "abi:extract": "truffle-extract --output abi/ --keys abi",
     "prepublishOnly": "truffle compile --all && npm run abi:extract -- --no-compile"
