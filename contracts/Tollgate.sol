@@ -13,7 +13,7 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     bytes32 public constant CHANGE_AMOUNT_ROLE = keccak256("CHANGE_AMOUNT_ROLE");
     bytes32 public constant CHANGE_DESTINATION_ROLE = keccak256("CHANGE_DESTINATION_ROLE");
 
-    string private constant ERROR_FEE_TRANSFER_REVERTED = "TOLLGATE_FEE_TRANSFER_REVERT";
+    string private constant ERROR_FEE_TRANSFER_REVERTED = "TOLLGATE_FEE_TRANSFER_REVERTED";
 
     ERC20 public feeToken;
     uint256 public feeAmount;
@@ -55,12 +55,23 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
 
     // Forwarding fns
 
-    function isForwarder() external pure returns (bool) {
-        return true;
-    }
-
+    /**
+    * @notice Tells the forward fee token and amount of the Tollgate app
+    * @dev IFeeForwarder interface conformance
+    * @return Forwarder fee token address
+    * @return Forwarder fee amount
+    */
     function forwardFee() external view returns (address, uint256) {
         return (address(feeToken), feeAmount);
+    }
+
+    /**
+    * @notice Tells whether the Tollgate app is a forwarder or not
+    * @dev IForwarder interface conformance
+    * @return Always true
+    */
+    function isForwarder() external pure returns (bool) {
+        return true;
     }
 
     /**
@@ -71,10 +82,7 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
     function forward(bytes _evmScript) public {
         // Don't do an unnecessary transfer if there's no fee right now
         if (feeAmount > 0) {
-            require(
-                feeToken.safeTransferFrom(msg.sender, feeDestination, feeAmount),
-                ERROR_FEE_TRANSFER_REVERTED
-            );
+            require(feeToken.safeTransferFrom(msg.sender, feeDestination, feeAmount), ERROR_FEE_TRANSFER_REVERTED);
         }
 
         // Fee transfer successful; run script
@@ -83,9 +91,12 @@ contract Tollgate is AragonApp, IForwarder, IForwarderFee {
         runScript(_evmScript, input, blacklist);
     }
 
+    /**
+    * @notice Tells whether the _sender can forward actions or not
+    * @dev IForwarder interface conformance. It assumes the sender can always forward actions through the Tollgate app.
+    * @return Always true
+    */
     function canForward(address, bytes) public view returns (bool) {
-        // Just always assume the sender can forward; they will be forced to pay the fee upon the
-        // actual forwarding transaction
         return true;
     }
 }
