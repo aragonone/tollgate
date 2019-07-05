@@ -17,6 +17,8 @@ import "@aragon/os/contracts/factory/DAOFactory.sol";
 import "@aragon/os/contracts/lib/ens/ENS.sol";
 import "@aragon/os/contracts/lib/token/ERC20.sol";
 import "@aragon/os/contracts/lib/ens/PublicResolver.sol";
+import "@aragon/apps-vault/contracts/Vault.sol";
+import "@aragon/apps-finance/contracts/Finance.sol";
 import "@aragon/apps-voting/contracts/Voting.sol";
 import "@aragon/apps-token-manager/contracts/TokenManager.sol";
 import "@aragon/apps-shared-minime/contracts/MiniMeToken.sol";
@@ -30,7 +32,9 @@ contract TollgateKit is APMNamehash {
     uint64 internal constant PCT = 10 ** 16;
     address internal constant ANY_ENTITY = address(-1);
 
+    bytes32 internal VAULT_APP_ID = apmNamehash("vault");
     bytes32 internal VOTING_APP_ID = apmNamehash("voting");
+    bytes32 internal FINANCE_APP_ID = apmNamehash("finance");
     bytes32 internal TOLLGATE_APP_ID = apmNamehash("tollgate");
     bytes32 internal TOKEN_MANAGER_APP_ID = apmNamehash("token-manager");
 
@@ -54,17 +58,23 @@ contract TollgateKit is APMNamehash {
         ACL acl = ACL(dao.acl());
         acl.createPermission(this, dao, dao.APP_MANAGER_ROLE(), this);
 
-        Voting voting = Voting(installApp(dao, VOTING_APP_ID));
+        Vault vault = Vault(installApp(dao, VAULT_APP_ID));
+        Voting voting = Voting(installDefaultApp(dao, VOTING_APP_ID));
+        Finance finance = Finance(installApp(dao, FINANCE_APP_ID));
         Tollgate tollgate = Tollgate(installApp(dao, TOLLGATE_APP_ID));
         TokenManager tokenManager = TokenManager(installApp(dao, TOKEN_MANAGER_APP_ID));
 
         MiniMeToken token = miniMeTokenFactory.createCloneToken(MiniMeToken(0), 0, "Tollgate DAO Token", 18, "TDT", true);
         token.changeController(tokenManager);
 
+        vault.initialize();
+        finance.initialize(vault, 30 days);
+        acl.createPermission(finance, vault, vault.TRANSFER_ROLE(), root);
+
         MiniMeToken feeToken = miniMeTokenFactory.createCloneToken(MiniMeToken(0), 0, "Tollgate Fee Token", 18, "TFT", true);
-        token.generateTokens(root, 100e18);
-        token.changeController(root);
-        tollgate.initialize(ERC20(feeToken), 1e18, dao.getRecoveryVault());
+        feeToken.generateTokens(root, 100e18);
+        feeToken.changeController(root);
+        tollgate.initialize(ERC20(feeToken), 1e18, root);
 
         voting.initialize(token, 50 * PCT, 0, 1 days);
         tokenManager.initialize(token, true, 0);
@@ -92,7 +102,15 @@ contract TollgateKit is APMNamehash {
     }
 
     function installApp(Kernel dao, bytes32 appId) internal returns (address) {
-        return address (dao.newAppInstance(appId, latestVersionAppBase(appId)));
+        address instance = address(dao.newAppInstance(appId, latestVersionAppBase(appId)));
+        emit InstalledApp(instance, appId);
+        return instance;
+    }
+
+    function installDefaultApp(Kernel dao, bytes32 appId) internal returns (address) {
+        address instance = address(dao.newAppInstance(appId, latestVersionAppBase(appId), new bytes(0), true));
+        emit InstalledApp(instance, appId);
+        return instance;
     }
 
     function latestVersionAppBase(bytes32 appId) internal view returns (address) {
