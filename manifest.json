@@ -1,0 +1,7 @@
+{
+  "name": "Tollgate",
+  "author": "Aragon One",
+  "description": "Aragon forwarder for protecting actions with fees",
+  "changelog_url": "https://github.com/aragonone/tollgate/releases",
+  "source_url": "https://github.com/aragonone/tollgate/blob/master/"
+}
