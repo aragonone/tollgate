@@ -58,8 +58,8 @@ contract TollgateKit is APMNamehash {
         ACL acl = ACL(dao.acl());
         acl.createPermission(this, dao, dao.APP_MANAGER_ROLE(), this);
 
-        Vault vault = Vault(installApp(dao, VAULT_APP_ID));
-        Voting voting = Voting(installDefaultApp(dao, VOTING_APP_ID));
+        Vault vault = Vault(installDefaultApp(dao, VAULT_APP_ID));
+        Voting voting = Voting(installApp(dao, VOTING_APP_ID));
         Finance finance = Finance(installApp(dao, FINANCE_APP_ID));
         Tollgate tollgate = Tollgate(installApp(dao, TOLLGATE_APP_ID));
         TokenManager tokenManager = TokenManager(installApp(dao, TOKEN_MANAGER_APP_ID));
@@ -69,15 +69,19 @@ contract TollgateKit is APMNamehash {
 
         vault.initialize();
         finance.initialize(vault, 30 days);
-        acl.createPermission(finance, vault, vault.TRANSFER_ROLE(), root);
 
         MiniMeToken feeToken = miniMeTokenFactory.createCloneToken(MiniMeToken(0), 0, "Tollgate Fee Token", 18, "TFT", true);
         feeToken.generateTokens(root, 100e18);
         feeToken.changeController(root);
-        tollgate.initialize(ERC20(feeToken), 1e18, root);
+        tollgate.initialize(ERC20(feeToken), 1e18, finance);
 
         voting.initialize(token, 50 * PCT, 0, 1 days);
         tokenManager.initialize(token, true, 0);
+
+        acl.createPermission(finance, vault, vault.TRANSFER_ROLE(), voting);
+        acl.createPermission(voting, finance, finance.CREATE_PAYMENTS_ROLE(), voting);
+        acl.createPermission(voting, finance, finance.EXECUTE_PAYMENTS_ROLE(), voting);
+        acl.createPermission(voting, finance, finance.MANAGE_PAYMENTS_ROLE(), voting);
 
         acl.createPermission(tollgate, voting, voting.CREATE_VOTES_ROLE(), root);
 
