@@ -1,12 +1,14 @@
 {
   "environments": {
     "default": {
-      "appName": "tollgate.open.aragonpm.eth",
+      "appName": "tollgate.aragonpm.eth",
       "network": "rpc"
     },
     "rinkeby": {
       "appName": "tollgate.open.aragonpm.eth",
-      "network": "rinkeby"
+      "network": "rinkeby",
+      "registry": "0x98df287b6c145399aaa709692c8d308357bc085d",
+      "wsRPC": "wss://rinkeby.eth.aragon.network/ws"
     }
   },
   "roles": [
