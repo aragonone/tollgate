@@ -1,11 +1,11 @@
 {
   "environments": {
     "default": {
-      "appName": "tollgate.aragonpm.eth",
+      "appName": "tollgate.open.aragonpm.eth",
       "network": "rpc"
     },
     "rinkeby": {
-      "appName": "tollgate.aragonpm.eth",
+      "appName": "tollgate.open.aragonpm.eth",
       "network": "rinkeby"
     }
   },
